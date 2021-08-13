@@ -72,27 +72,28 @@ app.post('/transactions/add', async (req: any, res: any) => {
     //from
     //to
     //amount
-    if (!checkNullOrUndefined(data.date) && !checkNullOrUndefined(data.description) && !checkNullOrUndefined(data.from) && !checkNullOrUndefined(data.to) && !checkNullOrUndefined(data.amount) && typeof data.date == "number" && typeof data.description == "string" && typeof data.from === "string" && typeof data.to === "string" && typeof data.amount === "number") {
-        var fromAccount = await admin.firestore().collection("accounts").doc(data.from).get();
-        var toAccount = await admin.firestore().collection("accounts").doc(data.to).get();
+    if (!checkNullOrUndefined(data.date) && !checkNullOrUndefined(data.description) && !checkNullOrUndefined(data.fromAccount) && !checkNullOrUndefined(data.toAccount) && !checkNullOrUndefined(data.amount) && typeof data.date == "number" && typeof data.description == "string" && typeof data.fromAccount === "string" && typeof data.toAccount === "string" && typeof data.amount === "number") {
+        var fromAccount = await admin.firestore().collection("accounts").doc(data.fromAccount).get();
+        var toAccount = await admin.firestore().collection("accounts").doc(data.toAccount).get();
 
         if (!checkNullOrUndefined(fromAccount) && !checkNullOrUndefined(toAccount)) {
             let id = uuidv4();
             let timestamp = Date.now();
             
-            var fromRef = await admin.firestore().collection("accounts").doc(data.from);
-            var toRef = await admin.firestore().collection("accounts").doc(data.to);
+            var fromRef = await admin.firestore().collection("accounts").doc(data.fromAccount);
+            var toRef = await admin.firestore().collection("accounts").doc(data.toAccount);
 
             if (!checkNullOrUndefined(fromRef) && !checkNullOrUndefined(toRef)) {
+                const newFromBalance = fromAccount.data().currentBalance - data.amount
+                const newToBalance = toAccount.data().currentBalance + data.amount
+                await fromRef.update({ currentBalance: newFromBalance })
+                await toRef.update({ currentBalance: newToBalance })
 
+                await admin.firestore().collection('transactions').doc(id).set({id: id, createdAt: timestamp, updatedAt: timestamp, date: data.date, description: data.description, fromAccount: data.fromAccount, toAccount: data.toAccount, amount: data.amount});
+                res.json({id: id, createdAt: timestamp, updatedAt: timestamp, date: data.date, description: data.description, fromAccount: data.fromAccount, toAccount: data.toAccount, amount: data.amount});
+            } else {
+                res.status(400).json({success: false})
             }
-            const newFromBalance = fromAccount.data().currentBalance - data.amount
-            const newToBalance = toAccount.data().currentBalance + data.amount
-            await fromRef.update({ currentBalance: newFromBalance })
-            await toRef.update({ currentBalance: newToBalance })
-
-            await admin.firestore().collection('transactions').doc(id).set({id: id, createdAt: timestamp, updatedAt: timestamp, date: data.date, description: data.description, from: data.from, to: data.to, amount: data.amount});
-            res.json({id: id, createdAt: timestamp, updatedAt: timestamp, date: data.date, description: data.description, from: data.from, to: data.to, amount: data.amount});
         } else {
             res.status(400).json({success: false})
         }
