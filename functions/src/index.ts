@@ -9,6 +9,8 @@ admin.initializeApp();
 
 const express = require('express');
 const app = express();
+const cors = require('cors')({origin: true});
+app.use(cors);
 
 enum AccountType {
     Cash = "cash",
