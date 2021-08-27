@@ -4,12 +4,30 @@
         "indexes": "firestore.indexes.json"
     },
     "functions": {
-        "predeploy": "npm --prefix functions run build"
+        "predeploy": "npm --prefix functions run build",
+        "source": "functions"
     },
     "hosting": {
         "rewrites": [{
             "source": "**",
             "function": "api"
         }]
+    },
+    "emulators": {
+        "functions": {
+            "port": 5001
+        },
+        "firestore": {
+            "port": 5002
+        },
+        "hosting": {
+            "port": 5000
+        },
+        "ui": {
+            "enabled": true
+        },
+        "auth": {
+            "port": 9099
+        }
     }
 }
